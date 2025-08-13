@@ -1,11 +1,14 @@
 package com.myapplications.mydocscanner.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -20,21 +23,26 @@ import com.myapplications.mydocscanner.R
 import com.myapplications.mydocscanner.model.ScanItem
 import com.myapplications.mydocscanner.screens.components.*
 import com.myapplications.mydocscanner.viewmodel.QrViewModel
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun StatusScreen(navController: NavController, viewModel: QrViewModel) {
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("IN", "OUT")
+    // Use the new rememberPagerState from androidx.compose.foundation.pager
+    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    val scope = rememberCoroutineScope()
     val searchQuery by viewModel.searchQuery.collectAsState()
 
     var showMenu by remember { mutableStateOf(false) }
-    var showConfirmDialog by remember { mutableStateOf<ScanItem?>(null) }
+    var showConfirmSwitchDialog by remember { mutableStateOf<ScanItem?>(null) }
     var showEditDialog by remember { mutableStateOf<ScanItem?>(null) }
     var showLogDialog by remember { mutableStateOf<ScanItem?>(null) }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
+    var showConfirmDeleteDialog by remember { mutableStateOf<ScanItem?>(null) }
+
 
     Scaffold(
         topBar = {
@@ -92,48 +100,64 @@ fun StatusScreen(navController: NavController, viewModel: QrViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                label = { Text("Search") },
+                label = { Text("Search by Content") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
                 singleLine = true
             )
 
-            TabRow(selectedTabIndex = selectedTabIndex) {
+            TabRow(
+                selectedTabIndex = pagerState.currentPage,
+                containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+            ) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
+                        selected = pagerState.currentPage == index,
+                        onClick = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(index)
+                            }
+                        },
                         text = { Text(title, fontWeight = FontWeight.Bold) }
                     )
                 }
             }
 
-            val listToShow = when (selectedTabIndex) {
-                0 -> viewModel.inList
-                else -> viewModel.outList
-            }
+            // Use the new HorizontalPager from androidx.compose.foundation.pager
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                val listToShow = when (page) {
+                    0 -> viewModel.inList
+                    else -> viewModel.outList
+                }
 
-            val filteredList = listToShow.filter {
-                it.content.contains(searchQuery, ignoreCase = true)
-            }
+                val filteredList = listToShow.filter {
+                    it.content.contains(searchQuery, ignoreCase = true)
+                }
 
-            StatusList(
-                items = filteredList,
-                onSwitch = { item -> showConfirmDialog = item },
-                onEdit = { item -> showEditDialog = item },
-                onViewLogs = { item -> showLogDialog = item }
-            )
+                StatusList(
+                    items = filteredList,
+                    onSwitch = { item -> showConfirmSwitchDialog = item },
+                    onEdit = { item -> showEditDialog = item },
+                    onViewLogs = { item -> showLogDialog = item },
+                    onDelete = { item -> showConfirmDeleteDialog = item }
+                )
+            }
         }
     }
 
-    showConfirmDialog?.let { item ->
+    // --- Dialogs ---
+
+    showConfirmSwitchDialog?.let { item ->
         ConfirmationDialog(
             title = "Confirm Switch",
             text = "Are you sure you want to switch the status of '${item.content}'?",
             onConfirm = {
                 viewModel.switchItemStatus(item)
-                showConfirmDialog = null
+                showConfirmSwitchDialog = null
             },
-            onDismiss = { showConfirmDialog = null }
+            onDismiss = { showConfirmSwitchDialog = null }
         )
     }
 
@@ -161,6 +185,18 @@ fun StatusScreen(navController: NavController, viewModel: QrViewModel) {
             }
         )
     }
+
+    showConfirmDeleteDialog?.let { item ->
+        ConfirmationDialog(
+            title = "Confirm Deletion",
+            text = "Are you sure you want to permanently delete '${item.content}'?",
+            onConfirm = {
+                viewModel.deleteItem(item)
+                showConfirmDeleteDialog = null
+            },
+            onDismiss = { showConfirmDeleteDialog = null }
+        )
+    }
 }
 
 @Composable
@@ -168,7 +204,8 @@ fun StatusList(
     items: List<ScanItem>,
     onSwitch: (ScanItem) -> Unit,
     onEdit: (ScanItem) -> Unit,
-    onViewLogs: (ScanItem) -> Unit
+    onViewLogs: (ScanItem) -> Unit,
+    onDelete: (ScanItem) -> Unit
 ) {
     if (items.isEmpty()) {
         Box(
@@ -188,7 +225,8 @@ fun StatusList(
                     item = item,
                     onSwitch = onSwitch,
                     onEdit = onEdit,
-                    onViewLogs = onViewLogs
+                    onViewLogs = onViewLogs,
+                    onDelete = onDelete
                 )
             }
         }
@@ -200,7 +238,8 @@ fun StatusListItem(
     item: ScanItem,
     onSwitch: (ScanItem) -> Unit,
     onEdit: (ScanItem) -> Unit,
-    onViewLogs: (ScanItem) -> Unit
+    onViewLogs: (ScanItem) -> Unit,
+    onDelete: (ScanItem) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()) }
@@ -228,6 +267,11 @@ fun StatusListItem(
                         DropdownMenuItem(text = { Text("Switch Status") }, onClick = { onSwitch(item); showMenu = false })
                         DropdownMenuItem(text = { Text("Edit/Add Note") }, onClick = { onEdit(item); showMenu = false })
                         DropdownMenuItem(text = { Text("View Logs") }, onClick = { onViewLogs(item); showMenu = false })
+                        HorizontalDivider()
+                        DropdownMenuItem(
+                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                            onClick = { onDelete(item); showMenu = false }
+                        )
                     }
                 }
             }

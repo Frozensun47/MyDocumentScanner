@@ -6,18 +6,19 @@ plugins {
 
 android {
     namespace = "com.myapplications.mydocscanner"
-    // Changed compileSdk to 34, a recent stable version. 35 is a preview release.
     compileSdk = 35
 
     defaultConfig {
         applicationId = "com.myapplications.mydocscanner"
         minSdk = 30
-        // Changed targetSdk to 34 to match compileSdk.
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
     }
 
     buildTypes {
@@ -39,17 +40,20 @@ android {
     buildFeatures {
         compose = true
     }
-    // Added composeOptions to specify the Kotlin compiler extension version.
-    // This is crucial for Jetpack Compose.
-    // Ensure this version is compatible with your project's Kotlin version.
+    // The composeOptions block is often managed by the Kotlin Compose plugin,
+    // but explicitly setting it ensures compatibility.
+    // "1.5.8" is compatible with Kotlin 2.0.0, but consider updating to "1.5.10" for the latest fixes.
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8" // Compatible with Kotlin 1.9.22
+        kotlinCompilerExtensionVersion = "1.5.8"
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
 }
 
 dependencies {
-    // Define the camerax_version variable.
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -58,8 +62,32 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    // Added dependency for extended Material icons, which includes SwapHoriz
     implementation(libs.androidx.material.icons.extended)
+
+    // CameraX dependencies using version catalog
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+
+    // ML Kit Barcode Scanning using version catalog
+    implementation(libs.barcode.scanning)
+
+    // Accompanist libraries using version catalog
+    implementation(libs.accompanist.permissions)
+    implementation(libs.accompanist.pager)
+    implementation(libs.accompanist.pager.indicators)
+
+    // Jetpack Compose Navigation using version catalog
+    implementation(libs.androidx.navigation.compose)
+
+    // ViewModel for Compose using version catalog
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // Added Gson for saving data persistently
+    implementation(libs.gson)
+
+    // Test dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -67,26 +95,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-
-    // CameraX dependencies now use the defined variable
-    implementation(libs.androidx.camera.core)
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
-
-    // ML Kit Barcode Scanning
-    implementation(libs.barcode.scanning)
-
-    // Accompanist for Permissions (simplifies permission handling)
-    implementation(libs.accompanist.permissions)
-
-    // Jetpack Compose Navigation
-    implementation(libs.androidx.navigation.compose)
-
-    // ViewModel for Compose
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-
-    implementation(libs.accompanist.pager)
-    implementation(libs.accompanist.pager.indicators)
 }
