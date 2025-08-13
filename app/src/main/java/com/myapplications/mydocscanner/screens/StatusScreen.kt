@@ -92,7 +92,7 @@ fun StatusScreen(navController: NavController, viewModel: QrViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                label = { Text("Search by Content") },
+                label = { Text("Search") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
                 singleLine = true
             )
@@ -233,7 +233,7 @@ fun StatusListItem(
             }
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 12.dp)) {
-                    Divider(modifier = Modifier.padding(bottom = 12.dp))
+                    HorizontalDivider(modifier = Modifier.padding(bottom = 12.dp))
                     Text("Notes:", fontWeight = FontWeight.Bold)
                     Text(
                         text = item.notes.ifEmpty { "No notes added." },

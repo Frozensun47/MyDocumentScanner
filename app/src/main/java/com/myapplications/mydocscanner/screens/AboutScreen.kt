@@ -64,7 +64,7 @@ fun AboutScreen(navController: NavController) {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Version 1.0.0", // This can be dynamically loaded
+                        text = "Version 13.8.25", // This can be dynamically loaded
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -74,7 +74,7 @@ fun AboutScreen(navController: NavController) {
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "Your simple, offline document tracking companion. Easily scan QR codes to manage the IN/OUT status of your important items.",
+                        text = "A simple, offline document tracking companion. Easily scan QR codes to manage the IN/OUT status of important Documents.\n For Internal Family Use Only.",
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(16.dp)
