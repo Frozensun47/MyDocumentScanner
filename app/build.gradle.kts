@@ -5,12 +5,12 @@ plugins {
 }
 
 android {
-    namespace = "com.myapplications.ahlmadad"
+    namespace = "com.myapplications.mydocscanner"
     // Changed compileSdk to 34, a recent stable version. 35 is a preview release.
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.myapplications.ahlmadad"
+        applicationId = "com.myapplications.mydocscanner"
         minSdk = 30
         // Changed targetSdk to 34 to match compileSdk.
         targetSdk = 35

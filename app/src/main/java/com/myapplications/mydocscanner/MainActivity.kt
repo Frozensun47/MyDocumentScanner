@@ -8,13 +8,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.myapplications.mydocscanner.navigation.AppNavigation
-import com.myapplications.mydocscanner.ui.theme.mydocscannerTheme // Make sure to replace with your theme name
+import com.myapplications.mydocscanner.ui.theme.MyDocScannerTheme // Make sure to replace with your theme name
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            mydocscannerTheme {
+            MyDocScannerTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
